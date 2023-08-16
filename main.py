@@ -23,7 +23,9 @@ def deal_pkt():
 
 def _sniff():
     while True:
-        sniff(iface=config.interface, prn=lambda pkt: pkt_queue.put((pkt, int(time.time()))), count=100)
+        sniff(iface=config.interface, 
+              prn=lambda pkt: pkt_queue.put((pkt, int(time.time()))), 
+              count=100)
 
 
 if __name__ == '__main__':

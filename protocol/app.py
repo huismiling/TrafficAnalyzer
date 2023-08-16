@@ -6,7 +6,7 @@ import db
 import util
 
 app_start_sql = "INSERT INTO `log_app` (`client_mac`, `start_time`, `end_time`, `app_name`, `host`)" \
-                " VALUE ('{client_mac}', {start_time}, 0, '{app_name}', '{host}')"
+                " VALUES ('{client_mac}', {start_time}, 0, '{app_name}', '{host}')"
 app_end_sql = "UPDATE `log_app` SET `end_time`={end_time} where `id`={row_id}"
 g_features = {
     "TCP": [],

@@ -9,7 +9,7 @@ from scapy.all import *
 
 tcp_sql = "INSERT INTO `log_netflow` (`client_mac`, `ip_src`, `ip_dst`, `port_src`, `port_dst`, `pkt_list`," \
           " `len`, `time_start`, `time_end`, `type`, `host`)" \
-          "VALUE ('{client_mac}', '{ip_src}', '{ip_dst}', {port_src}, {port_dst}, '{pkt_list}', " \
+          "VALUES ('{client_mac}', '{ip_src}', '{ip_dst}', {port_src}, {port_dst}, '{pkt_list}', " \
           "'{len}', '{time_start}', '{time_end}', 6, '{host}')"
 
 sessions = {}

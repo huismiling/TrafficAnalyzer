@@ -4,10 +4,10 @@ import db
 from scapy.layers.dns import DNSRR, DNSQR, DNS
 from scapy.layers.l2 import Ether
 
-dns_query_sql = "INSERT INTO `log_dns` (`client_mac`, `domain`, `time`) VALUE (" \
+dns_query_sql = "INSERT INTO `log_dns` (`client_mac`, `domain`, `time`) VALUES (" \
                 "'{client_mac}', '{domain}', {time})"
 
-dns_response_sql = "INSERT INTO `log_dns` (`type`, `client_mac`, `domain`, `rdata`, `time`) VALUE (" \
+dns_response_sql = "INSERT INTO `log_dns` (`type`, `client_mac`, `domain`, `rdata`, `time`) VALUES (" \
                    "{type}, '{client_mac}', '{domain}', '{rdata}', {time})"
 
 g_rdata = ""

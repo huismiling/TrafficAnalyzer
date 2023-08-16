@@ -1,25 +1,22 @@
 import threading
 import time
 
-import pymysql
+# import pymysql
+import sqlite3
 
 import config
 import util
 
 db_instances = []
 
-
 def get_db_instance():
-    instance = pymysql.connect(**config.mysql_settings)
-    db_instances.append(instance)
+    # instance = pymysql.connect(**config.mysql_settings)
+    instance = sqlite3.connect(**config.sqlite_settings)
     return instance
 
 
-database = get_db_instance()
-cursor = database.cursor()
 sqls = []
 lock = threading.Lock()
-
 
 def query(sql, callback=None):
     global sqls
@@ -29,8 +26,9 @@ def query(sql, callback=None):
 
 
 def autocommit():
-    database.ping(reconnect=True)
     if len(sqls):
+        database = get_db_instance()
+        cursor = database.cursor()
         print("[DB] auto commit {} sqls".format(len(sqls)))
         lock.acquire()
         _sqls = sqls.copy()
@@ -45,7 +43,8 @@ def autocommit():
             except Exception as e:
                 print("[DB]", e)
 
-        database.commit()
+        data = cursor.fetchall()
+        database.close()
 
 
 def close():
@@ -59,52 +58,48 @@ def get_time():
 
 
 def init_database():
+    database = get_db_instance()
+    cursor = database.cursor()
+
     init_dns_sql = '''CREATE TABLE IF NOT EXISTS "log_dns" (
-          "id" int(11) NOT NULL AUTO_INCREMENT,
-          "type" mediumint(9) DEFAULT NULL,
-          "client_mac" varchar(17) COLLATE utf8mb4_unicode_ci DEFAULT '',
-          "domain" varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          "rdata" varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          "time" bigint(20) DEFAULT NULL,
-          PRIMARY KEY ("id"),
-          KEY "id" ("id") USING BTREE,
-          KEY "domain" ("domain") USING BTREE,
-          KEY "rdata" ("rdata") USING BTREE
-        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'''
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type mediumint(9) DEFAULT NULL,
+          client_mac varchar(17) DEFAULT '',
+          domain varchar(255) DEFAULT NULL,
+          rdata varchar(255) DEFAULT NULL,
+          time bigint(20) DEFAULT NULL
+        );'''
 
     init_netflow_sql = '''CREATE TABLE IF NOT EXISTS "log_netflow" (
-          "id" int(11) NOT NULL AUTO_INCREMENT,
-          "client_mac" varchar(17) COLLATE utf8mb4_unicode_ci DEFAULT '',
-          "ip_src" varchar(15) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          "ip_dst" varchar(15) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "client_mac" varchar(17) DEFAULT '',
+          "ip_src" varchar(15) DEFAULT NULL,
+          "ip_dst" varchar(15) DEFAULT NULL,
           "port_src" mediumint(9) DEFAULT NULL,
           "port_dst" mediumint(9) DEFAULT NULL,
           "time_start" bigint(20) DEFAULT NULL,
           "time_end" bigint(20) DEFAULT NULL,
           "len" int(11) DEFAULT NULL,
-          "pkt_list" mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+          "pkt_list" mediumtext DEFAULT NULL,
           "type" tinyint(4) DEFAULT NULL,
-          "host" varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          PRIMARY KEY ("id"),
-          UNIQUE KEY "id" ("id") USING BTREE,
-          KEY "ip_dst" ("ip_dst") USING BTREE
-        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'''
+          "host" varchar(255) DEFAULT NULL
+        ) ;'''
 
     init_app_sql = '''CREATE TABLE IF NOT EXISTS "log_app" (
-          "id" int(11) NOT NULL AUTO_INCREMENT,
-          "client_mac" varchar(17) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          "app_name" varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT '',
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "client_mac" varchar(17) DEFAULT NULL,
+          "app_name" varchar(64) DEFAULT '',
           "start_time" bigint(20) DEFAULT NULL,
           "end_time" bigint(20) DEFAULT NULL,
-          "host" varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-          PRIMARY KEY ("id")
-        ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'''
+          "host" varchar(64) DEFAULT NULL
+        ); '''
 
-    cursor.execute('SET GLOBAL SQL_MODE=ANSI_QUOTES;')
+    # cursor.execute('SET GLOBAL SQL_MODE=ANSI_QUOTES;')
     cursor.execute(init_dns_sql)
     cursor.execute(init_netflow_sql)
     cursor.execute(init_app_sql)
-    database.commit()
+    data = cursor.fetchall()
+    database.close()
 
 
 init_database()
